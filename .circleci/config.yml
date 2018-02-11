@@ -19,7 +19,7 @@ jobs:
             - dot-cache-pre-commit-{{ checksum ".pre-commit-config.yaml" }}
       - run:
           name: run tests
-          command: make all
+          command: make test
       - save_cache:
           key: dot-cache-pre-commit-{{ checksum ".pre-commit-config.yaml" }}
           paths:
