@@ -7,10 +7,10 @@ jobs:
       - image: circleci/python:3.6.1
     working_directory: ~/repo
     steps:
+      - checkout
       - run:
           name: Setup pre-commit
           run: sudo pip3 install pre-commit
-      - checkout
       - restore_cache:
           keys:
             - dot-cache-pre-commit-{{ checksum ".pre-commit-config.yaml" }}
