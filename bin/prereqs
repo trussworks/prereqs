@@ -1,0 +1,74 @@
+#! /usr/bin/env bash
+
+PREREQ=$(basename "$0")
+
+has() {
+    local tool=$1
+    if [[ ! -z $(type -p "${tool}") ]]; then
+        echo "${tool} installed."
+        return 0
+    else
+        echo "WARNING: ${tool} not found."
+        prereqs_found=false
+        return 1
+    fi
+}
+
+prereqs_check() {
+    local config_file=${1:-prereqs.conf}
+    prereqs_found=true
+    set +e
+    # shellcheck source=/dev/null
+    . "${config_file}"
+    set -e
+    if [[ $prereqs_found == "true" ]]; then
+        echo "OK: all prereqs found"
+    else
+        echo "ERROR: some prereqs missing, please install them"
+        return 1
+    fi
+}
+
+prereqs_update() {
+    echo "Not implemented"
+}
+
+prereqs_usage() {
+    cat <<EOF
+Usage: ${PREREQ} -c prereq.conf [-h] [-u]
+
+       -c FILE    Load the config file
+       -h         Print this help
+       -u         Update prereq to current version
+EOF
+}
+
+main() {
+    # Enable the safeties
+    set -eu -o pipefail
+    while getopts 'c:hu' opt; do
+        case ${opt} in
+            c)
+                prereqs_check "${OPTARG}"
+                exit $?
+            ;;
+            h)
+                prereqs_usage
+                exit 0
+            ;;
+            u)
+                prereqs_update
+                exit 0
+            ;;
+            *)
+                prereqs_usage
+                exit 1
+            ;;
+        esac
+    done
+    prereqs_usage
+    exit 1
+}
+
+# Execute main() if this is run in standalone mode (vs. from a unit test)
+[ -z "${SHUNIT_VERSION}" ] && main "$@"
