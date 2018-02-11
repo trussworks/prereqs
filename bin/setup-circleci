@@ -1,7 +1,7 @@
 #! /bin/bash
 
-pip3 install pre-commit
-apt-get install shellcheck
+sudo pip3 install pre-commit
+sudo apt-get install shellcheck
 curl -O https://dl.google.com/go/go1.9.4.linux-amd64.tar.gz
-tar -C /usr/local -xzf go1.9.4.linux-amd64.tar.gz
+sudo tar -C /usr/local -xzf go1.9.4.linux-amd64.tar.gz
 go get -u mvdan.cc/sh/cmd/shfmt

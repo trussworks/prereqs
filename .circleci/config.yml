@@ -7,13 +7,13 @@ jobs:
       - image: circleci/python:3.6.1
     working_directory: ~/repo
     environment:
-      - GOPATH: "~/go"
-      - PATH: "~/go/bin:/usr/local/go/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      - GOPATH: "/home/circleci/go"
+      - PATH: "/home/circleci/go/bin:/usr/local/go/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
     steps:
       - checkout
       - run:
           name: Setup build prereqs
-          command: sudo ~/repo/bin/setup-circleci
+          command: ~/repo/bin/setup-circleci
       - restore_cache:
           keys:
             - dot-cache-pre-commit-{{ checksum ".pre-commit-config.yaml" }}
