@@ -30,40 +30,51 @@ prereqs_check() {
 }
 
 prereqs_update() {
-    echo "Not implemented"
+    local tag=${1:-latest}
+    if  ! has curl; then
+        return 1
+    fi
+    echo "https://raw.githubusercontent.com/trussworks/prereqs/${tag}/prereqs"
+    #     curl -O https://raw.githubusercontent.com/trussworks/prereqs/master/prereqs
+
 }
 
 prereqs_usage() {
     cat <<EOF
-Usage: ${PREREQ} -c prereq.conf [-h] [-u]
+Usage: ${PREREQ} -c prereq.conf [-h] [-u [-t tag]]
 
        -c FILE    Load the config file
        -h         Print this help
-       -u         Update prereq to current version
+       -u         Update prereq to current version from tag (default latest)
+       -t         Tag to update to (default latest)
 EOF
 }
 
 main() {
     # Enable the safeties
     set -eu -o pipefail
-    while getopts 'c:hu' opt; do
+    local update_tag="latest"
+    while getopts 'c:hut:' opt; do
         case ${opt} in
             c)
                 prereqs_check "${OPTARG}"
                 exit $?
-            ;;
+                ;;
             h)
                 prereqs_usage
                 exit 0
-            ;;
+                ;;
             u)
-                prereqs_update
-                exit 0
-            ;;
+                prereqs_update "${update_tag}"
+                exit $?
+                ;;
+            t)
+                update_tag="${OPTARG}"
+                ;;
             *)
                 prereqs_usage
                 exit 1
-            ;;
+                ;;
         esac
     done
     prereqs_usage
