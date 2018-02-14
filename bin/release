@@ -1,0 +1,16 @@
+#! /usr/bin/env bash
+
+main() {
+    set -eu -o pipefail
+    local version=${1-}
+    if [[ -z $version ]]; then
+        echo "Must supply a version to tag and release"
+        exit 1
+    fi
+    git tag -a -f -m "Release ${version}" "${version}"
+    git tag -a -f -m "Release ${version}" latest "${version}"
+    git push upstream "${version}"
+    git push upstream latest
+}
+
+[ -z "${SHUNIT_VERSION}" ] && main "$@"
