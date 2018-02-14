@@ -1,3 +1,5 @@
+![build status](https://circleci.com/gh/trussworks/prereqs.svg?style=shield)
+
 # prereqs
 
 A tool to check your project prerequisites so your engineers don't have to.
