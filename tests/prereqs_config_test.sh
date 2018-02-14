@@ -8,19 +8,19 @@ MOCK_CONFIG_NOT_OK='' #
 
 testConfigAllOK() {
     got=$(../prereqs -c "${MOCK_CONFIG_ALL_OK}")
-    want="ls installed.
-bash installed.
-cp installed.
+    want="ls exists.
+bash exists.
+cp exists.
 OK: all prereqs found"
     assertEquals "${want}" "${got}"
 }
 
 testConfigNotOK() {
     got=$(../prereqs -c "${MOCK_CONFIG_NOT_OK}")
-    want="ls installed.
+    want="ls exists.
 WARNING: BADTHING not found.
 WARNING: ANOTHERBADTHING not found.
-cp installed.
+cp exists.
 ERROR: some prereqs missing, please install them"
     assertEquals "${want}" "${got}"
 }

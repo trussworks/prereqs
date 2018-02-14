@@ -1,11 +1,31 @@
 #! /usr/bin/env bash
 
-PREREQ=$(basename "$0")
+PREREQS=$(basename "$0")
+
+# Returns the physical dir that this script is in.
+# To use:
+# local prereqs_dir_retval
+# prereqs_dir
+# echo $prereqs_dir_retval
+prereqs_dir() {
+    local d=""
+    local src="${BASH_SOURCE[0]}"
+    # # resolve $src until the file is no longer a symlink.
+    while [[ -h "$src" ]]; do
+        d="$(cd -P "$(dirname "$src")" && pwd)"
+        src="$(readlink "$src")"
+        # If src was a relative symlink, we need to resolve it relative to
+        # the path where the symlink was located.
+        [[ $src != /* ]] && src="$d/$src"
+    done
+    prereqs_dir_retval="$(cd -P "$(dirname "$src")" && pwd)"
+    return 0
+}
 
 has() {
     local tool=$1
     if [[ ! -z $(type -p "${tool}") ]]; then
-        echo "${tool} installed."
+        echo "${tool} exists."
         return 0
     else
         echo "WARNING: ${tool} not found."
@@ -31,17 +51,33 @@ prereqs_check() {
 
 prereqs_update() {
     local tag=${1:-latest}
-    if  ! has curl; then
+    local d=""
+    local prereqs_dir_retval
+    if prereqs_dir; then
+        d="$prereqs_dir_retval"
+    else
+        # error
         return 1
     fi
-    echo "https://raw.githubusercontent.com/trussworks/prereqs/${tag}/prereqs"
-    #     curl -O https://raw.githubusercontent.com/trussworks/prereqs/master/prereqs
-
+    if ! has curl; then
+        return 1
+    fi
+    pushd "$d" > /dev/null
+    local prereqs_tmp="${PREREQS}.tmp"
+    if curl -s -q -o "$prereqs_tmp" \
+            "https://raw.githubusercontent.com/trussworks/prereqs/${tag}/prereqs"
+    then
+        echo "Got it"
+        install -C "${prereqs_tmp}" "${PREREQS}"
+    else
+        echo "Failed"
+        return 1
+    fi
 }
 
 prereqs_usage() {
     cat <<EOF
-Usage: ${PREREQ} -c prereq.conf [-h] [-u [-t tag]]
+Usage: ${PREREQS} -c prereq.conf [-h] [-u [-t tag]]
 
        -c FILE    Load the config file
        -h         Print this help
