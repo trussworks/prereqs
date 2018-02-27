@@ -1,8 +1,10 @@
-![build status](https://circleci.com/gh/trussworks/prereqs.svg?style=shield)
-
 # prereqs
 
 A tool to check your project prerequisites so your engineers don't have to.
+
+## Build Status
+
+[![CircleCI](https://circleci.com/gh/trussworks/prereqs.svg?style=shield)](https://circleci.com/gh/trussworks/prereqs)
 
 ## Why
 
@@ -35,7 +37,7 @@ An example prereqs.conf for a small go project:
 
 ## Thanks
 
-[Kate Ward](mailto:kate.ward@forestent.com) for [shunit2] (<https://github.com/kward/shunit2>)
+[Kate Ward](mailto:kate.ward@forestent.com) for [shunit2](<https://github.com/kward/shunit2>)
 
 ## License
 
