@@ -4,6 +4,11 @@
 
 A tool to check your project prerequisites so your engineers don't have to.
 
+## prerequisites
+	- pre-commit
+	- shfmt
+	- shellcheck
+
 ## Why
 
 While it's best practice to have project dependencies contained within the project (via `bundler`, `npm`, or similar tools), it is very common to have bootstrap prerequisites that need to be installed on the system outside of the project's normal build process. For example, you need to have npm installed before you can use it.

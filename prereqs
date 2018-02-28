@@ -2,6 +2,19 @@
 
 PREREQS=$(basename "$0")
 
+has_awk() {
+    # Note: We use `awk` because its behavior is more consistent across
+    # platforms than `sed` (To use ERE with sed in BSDs is -E whereas in GNU is -r)
+    # If we find that `awk` is not reliably available, we can switch to
+    # `sed` with capability tests to determine the correct ERE flag.
+    awk 2> /dev/null
+    if [[ $? != 1 ]]; then
+        echo "awk not found"
+        return 1
+    fi
+    return 0
+}
+
 # Returns the physical dir that this script is in.
 # To use:
 # local prereqs_dir_retval
@@ -35,12 +48,51 @@ has() {
 }
 
 prereqs_check() {
-    local config_file=${1:-prereqs.conf}
     prereqs_found=true
-    set +e
-    # shellcheck source=/dev/null
-    . "${config_file}"
-    set -e
+    local config_file=${1}
+    if [[ -z ${config_file} ]]; then
+        # Get prereqs from README
+        # TODO: Currently checks for `README.md`; also look for `README`?
+        # TODO: Currently checks for README.md in local directory
+
+        # Find most-indented prereqs section
+        declare -a header_tags=('######' '#####' '####' '###' '##' '#')
+        for header_tag in ${header_tags[@]}; do
+            local line_number=$(awk "/${header_tag} prereqs$|${header_tag} prerequisites$/{print NR}" README.md)
+            if [[ ! -z ${line_number} ]]; then
+                break
+            fi
+        done
+        # echo "Found prereqs section on line $line_number with indentation $header_tag"
+
+        # Scan until next header section
+        while [[ ${line_number} -lt $(awk 'END {print NR}' README.md) ]] ; do
+            line_number=$((line_number + 1))
+            local line=$(awk "NR==${line_number}" README.md)
+            if [[ ! -z $(echo $line | awk "/##/") ]]; then
+                break
+            fi
+
+            local prereq=$(echo $line | sed "s/- //")
+            prereq=$(echo ${prereq} | sed 's/^[[:space:]]*//g')
+            # TODO: support descriptions ala "Postgres (psql)"
+            if [[ ! -z ${prereq} ]]; then
+                set +e
+                has ${prereq}
+                if [[ $? != 0 ]]; then
+                    prereqs_found="false"
+                fi
+                set -e
+            fi
+        done
+
+    else
+        # Get prereqs from config file
+        set +e
+        # shellcheck source=/dev/null
+        . "${config_file}"
+        set -e
+    fi
     if [[ $prereqs_found == "true" ]]; then
         echo "OK: all prereqs found"
     else
@@ -77,9 +129,9 @@ prereqs_update() {
 
 prereqs_usage() {
     cat <<EOF
-Usage: ${PREREQS} -c prereq.conf [-h] [-u [-t tag]]
+Usage: ${PREREQS} [-f prereq.conf] [-h] [-u [-t tag]]
 
-       -c FILE    Load the config file
+       -f         Specify a file to check for prereqs. Defaults to parsing README.md
        -h         Print this help
        -u         Update prereq to current version from tag (default latest)
        -t         Tag to update to (default latest)
@@ -87,12 +139,19 @@ EOF
 }
 
 main() {
+    # Check for awk
+    has_awk
+    has_awk_ret=$?
+    if [[ ${has_awk_ret} != 0 ]]; then
+        return ${has_awk_ret}
+    fi
+
     # Enable the safeties
     set -eu -o pipefail
     local update_tag="latest"
-    while getopts 'c:hut:' opt; do
+    while getopts 'f:hut:' opt; do
         case ${opt} in
-            c)
+            f)
                 prereqs_check "${OPTARG}"
                 exit $?
                 ;;
@@ -113,8 +172,8 @@ main() {
                 ;;
         esac
     done
-    prereqs_usage
-    exit 1
+    prereqs_check
+    exit $?
 }
 
 # Execute main() if this is run in standalone mode (vs. from a unit test)
