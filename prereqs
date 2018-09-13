@@ -49,6 +49,55 @@ prereqs_check() {
     fi
 }
 
+prereq_check_readme() {
+    local readme=${1:-README.md}
+    prereqs_found=true
+    # Note: We use `awk` because its behavior is more consistent
+    # across platforms than `sed` (To use ERE with sed in BSDs is -E
+    # whereas in GNU is -r) If we find that `awk` is not reliably
+    # available, we can switch to `sed` with capability tests to
+    # determine the correct ERE flag.
+    if ! has awk; then
+        return 1
+    fi
+    if ! has sed; then
+        return 1
+    fi
+    # Find most-indented prereqs section
+    declare -a header_tags=('######' '#####' '####' '###' '##' '#')
+    for header_tag in ${header_tags[@]}; do
+        local line_number=$(awk "/${header_tag} prereqs$|${header_tag} prerequisites$/{print NR}" $readme)
+        if [[ ! -z ${line_number} ]]; then
+            break
+        fi
+    done
+    # Scan until next header section
+    while [[ ${line_number} -lt $(awk 'END {print NR}' $readme) ]] ; do
+        line_number=$((line_number + 1))
+        local line=$(awk "NR==${line_number}" $readme)
+        if [[ ! -z $(echo $line | awk "/##/") ]]; then
+            break
+        fi
+        local prereq=$(echo $line | sed "s/- //")
+        prereq=$(echo ${prereq} | sed 's/^[[:space:]]*//g')
+        # TODO: support descriptions ala "Postgres (psql)"
+        if [[ ! -z ${prereq} ]]; then
+            set +e
+            has ${prereq}
+            if [[ $? != 0 ]]; then
+                prereqs_found="false"
+            fi
+            set -e
+        fi
+    done
+    if [[ $prereqs_found == "true" ]]; then
+        echo "OK: all prereqs found"
+    else
+        echo "ERROR: some prereqs missing, please install them"
+        return 1
+    fi
+}
+
 prereqs_update() {
     local tag=${1:-latest}
     local d=""
@@ -81,6 +130,7 @@ Usage: ${PREREQS} -c prereq.conf [-h] [-u [-t tag]]
 
        -c FILE    Load the config file
        -h         Print this help
+       -r README  Read prereqs out of the README.md specified
        -u         Update prereq to current version from tag (default latest)
        -t         Tag to update to (default latest)
 EOF
@@ -90,7 +140,7 @@ main() {
     # Enable the safeties
     set -eu -o pipefail
     local update_tag="latest"
-    while getopts 'c:hut:' opt; do
+    while getopts 'c:hr:t:u' opt; do
         case ${opt} in
             c)
                 prereqs_check "${OPTARG}"
@@ -100,12 +150,16 @@ main() {
                 prereqs_usage
                 exit 0
                 ;;
-            u)
-                prereqs_update "${update_tag}"
+            r)
+                prereq_check_readme "${OPTARG}"
                 exit $?
                 ;;
             t)
                 update_tag="${OPTARG}"
+                ;;
+            u)
+                prereqs_update "${update_tag}"
+                exit $?
                 ;;
             *)
                 prereqs_usage
