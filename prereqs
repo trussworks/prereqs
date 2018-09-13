@@ -65,26 +65,34 @@ prereq_check_readme() {
     fi
     # Find most-indented prereqs section
     declare -a header_tags=('######' '#####' '####' '###' '##' '#')
-    for header_tag in ${header_tags[@]}; do
-        local line_number=$(awk "/${header_tag} prereqs$|${header_tag} prerequisites$/{print NR}" $readme)
+    for header_tag in "${header_tags[@]}"; do
+        local line_number
+        line_number=$(awk "/${header_tag} prereqs$|${header_tag} prerequisites$/{print NR}" "$readme")
         if [[ ! -z ${line_number} ]]; then
             break
         fi
     done
     # Scan until next header section
-    while [[ ${line_number} -lt $(awk 'END {print NR}' $readme) ]] ; do
+    while [[ ${line_number} -lt $(awk 'END {print NR}' "$readme") ]] ; do
         line_number=$((line_number + 1))
-        local line=$(awk "NR==${line_number}" $readme)
-        if [[ ! -z $(echo $line | awk "/##/") ]]; then
+        local line
+        line=$(awk "NR==${line_number}" "$readme")
+        if [[ ! -z $(echo "$line" | awk "/##/") ]]; then
             break
         fi
-        local prereq=$(echo $line | sed "s/- //")
-        prereq=$(echo ${prereq} | sed 's/^[[:space:]]*//g')
+        local prereq
+        # We might be able to remove the dependency on sed here, and it
+        # will require more testing than I currently have time for.
+        # --mark
+        # shellcheck disable=SC2001
+        prereq=$(echo "$line" | sed "s/- //")
+        # shellcheck disable=SC2001
+        prereq=$(echo "$prereq" | sed 's/^[[:space:]]*//g')
         # TODO: support descriptions ala "Postgres (psql)"
         if [[ ! -z ${prereq} ]]; then
             set +e
-            has ${prereq}
-            if [[ $? != 0 ]]; then
+            if ! has "$prereq"; then
+            # if [[ $? != 0 ]]; then
                 prereqs_found="false"
             fi
             set -e
