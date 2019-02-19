@@ -132,8 +132,7 @@ EOF
         ash)
         # shellcheck disable=SC2230
         shell_bin=`which busybox |grep -v '^no busybox'`
-        # shellcheck disable=SC2166
-        [ $? -eq "${TRUE}" -a -n "${shell_bin}" ] && shell_present="${TRUE}"
+        [ $? -eq "${TRUE}" ] && [ -n "${shell_bin}" ] && shell_present="${TRUE}"
         shell_bin="${shell_bin} ash"
         shell_name=${shell}
         ;;
