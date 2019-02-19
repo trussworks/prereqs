@@ -18,8 +18,8 @@ pre-commit: .git/hooks/pre-commit
 
 # Re-check prereqs if the prereqs configuration is newer than the last time
 # we checked.
-.prereqs.stamp: etc/prereqs.conf
-	bin/prereqs -c etc/prereqs.conf
+.prereqs.stamp: README.md
+	bin/prereqs -r README.md
 	touch .prereqs.stamp
 
 clean:
