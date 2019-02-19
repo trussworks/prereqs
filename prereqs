@@ -24,7 +24,7 @@ prereqs_dir() {
 
 has() {
     local tool=$1
-    if [[ ! -z $(type -p "${tool}") ]]; then
+    if [[ -n $(type -p "${tool}") ]]; then
         echo "${tool} exists."
         return 0
     else
@@ -67,8 +67,8 @@ prereq_check_readme() {
     declare -a header_tags=('######' '#####' '####' '###' '##' '#')
     for header_tag in "${header_tags[@]}"; do
         local line_number
-        line_number=$(awk "/${header_tag} prereqs$|${header_tag} prerequisites$/{print NR}" "$readme")
-        if [[ ! -z ${line_number} ]]; then
+        line_number=$(awk "/${header_tag} prereqs$|${header_tag} Prerequisites$/{print NR}" "$readme")
+        if [[ -n ${line_number} ]]; then
             break
         fi
     done
@@ -77,7 +77,7 @@ prereq_check_readme() {
         line_number=$((line_number + 1))
         local line
         line=$(awk "NR==${line_number}" "$readme")
-        if [[ ! -z $(echo "$line" | awk "/##/") ]]; then
+        if [[ -n $(echo "$line" | awk "/##/") ]]; then
             break
         fi
         local prereq
@@ -89,7 +89,7 @@ prereq_check_readme() {
         # shellcheck disable=SC2001
         prereq=$(echo "$prereq" | sed 's/^[[:space:]]*//g')
         # TODO: support descriptions ala "Postgres (psql)"
-        if [[ ! -z ${prereq} ]]; then
+        if [[ -n ${prereq} ]]; then
             set +e
             if ! has "$prereq"; then
             # if [[ $? != 0 ]]; then
