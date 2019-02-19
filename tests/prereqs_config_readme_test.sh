@@ -6,6 +6,7 @@
 
 MOCK_README_ALL_OK='' # These are overridden in oneTimeSetup()
 MOCK_README_NOT_OK='' #
+MOCK_README_FOR_NESTED_PREREQS='' #
 
 testReadmeAllOK() {
     got=$(../prereqs -r "${MOCK_README_ALL_OK}")
@@ -27,6 +28,15 @@ WARNING: BADTHING not found.
 WARNING: ANOTHERBADTHING not found.
 cp exists.
 ERROR: some prereqs missing, please install them"
+    assertEquals "${want}" "${got}"
+}
+
+testReadmeNestedPrereqs() {
+    got=$(../prereqs -r "${MOCK_README_FOR_NESTED_PREREQS}")
+    want="awk exists.
+sed exists.
+ls exists.
+OK: all prereqs found"
     assertEquals "${want}" "${got}"
 }
 
@@ -60,6 +70,17 @@ My app is less neat.
 
 ## Other stuff
 Here! More stuff!
+EOF
+    MOCK_README_FOR_NESTED_PREREQS="${SHUNIT_TMPDIR}/nested.md"
+    cat <<EOF >"${MOCK_README_FOR_NESTED_PREREQS}"
+# prereqs
+
+My app is named prereqs.
+
+## Prerequisites
+
+- ls
+
 EOF
     # Load script under test
     . "../prereqs"

@@ -12,6 +12,8 @@ While it's best practice to have project dependencies contained within the proje
 
 `prereqs` can help new engineers working with your project make sure they have everything they need instead of reading through a README in order to make things work. It can also help when you need to add a prerequisite to an existing project; you can have `prereqs` run as part of your build to quickly error out and notify the engineer that they are missing something instead of wading through mysterious build errors.
 
+Note that `prereqs` explicitly does not attempt to modify the project environment; projects shouldn't attempt to change things outside of their direct control. In enterprise environments, this is solved with system management software; for more ad hoc projects, this is best solved with development containers or tools like vagrant. `prereqs` is just here to let the project check and fail quickly if the containing environment is broken.
+
 ## Usage and setup
 
 ``` shell
@@ -24,6 +26,14 @@ curl -O https://raw.githubusercontent.com/trussworks/prereqs/latest/prereqs
 You should have as few things in prereqs.conf as you can; good items include things like your language package managers, database tools, Docker binaries, and anything else that's a foundation of your build that isn't already included with your operating system by default. As much as you can, prefer to install tools local to your project; for example, eslint would be better handled by your `package.json` than `prereqs`.
 
 You can tell `prereqs` to update itself to latest release by running `prereqs -u`.
+
+You can also put your prereqs into your README.md, as shown below, and use `./prereqs -r README.md` instead of having a configuration file. The parser for this is currently pretty fragile.
+
+## Prerequisites
+
+- pre-commit
+- shfmt
+- shellcheck
 
 ## prereqs.conf
 
