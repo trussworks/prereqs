@@ -1,3 +1,5 @@
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/trussworks/prereqs/main.svg)](https://results.pre-commit.ci/latest/github/trussworks/prereqs/main)
+
 # prereqs
 
 A tool to check your project prerequisites so your engineers don't have to.
