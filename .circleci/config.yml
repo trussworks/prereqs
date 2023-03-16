@@ -6,21 +6,8 @@ jobs:
       # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
       - image: circleci/python:3.10.1
     working_directory: ~/repo
-    environment:
-      - GOPATH: "/home/circleci/go"
-      - PATH: "/home/circleci/go/bin:/usr/local/go/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
     steps:
       - checkout
       - run:
-          name: Setup build prereqs
-          command: ~/repo/bin/setup-circleci
-      - restore_cache:
-          keys:
-            - dot-cache-pre-commit-{{ checksum ".pre-commit-config.yaml" }}
-      - run:
           name: run tests
           command: make test
-      - save_cache:
-          key: dot-cache-pre-commit-{{ checksum ".pre-commit-config.yaml" }}
-          paths:
-            - ~/.cache/pre-commit
